@@ -144,8 +144,7 @@ public class GridEnvironment : Environment
         for (int i = 0; i < gridSize * gridSize; i++)
         {
             GameObject value = (GameObject)GameObject.Instantiate(Resources.Load("value"));
-            int x = i / gridSize;
-            int y = i % gridSize;
+            (int x, int y) = getPosition(i);
             value.transform.position = new Vector3(x, 0.0f, y);
             value.transform.localScale = new Vector3(value_estimates[i] / 1.25f, value_estimates[i] / 1.25f, value_estimates[i] / 1.25f);
             if (value_estimates[i] < 0)
@@ -171,8 +170,7 @@ public class GridEnvironment : Environment
 
         for (int i = 0; i < players.Length; i++)
         {
-            int x = (objectPositions[i]) / gridSize;
-            int y = (objectPositions[i]) % gridSize;
+            (int x, int y) = getPosition(objectPositions[i]);
             GameObject actorObj = (GameObject)GameObject.Instantiate(Resources.Load(players[i]));
             actorObj.transform.position = new Vector3(x, 0.0f, y);
             actorObj.name = players[i];
@@ -196,38 +194,22 @@ public class GridEnvironment : Environment
         // 0 - Forward, 1 - Backward, 2 - Left, 3 - Right
         if (action == 3)
         {
-            Collider[] blockTest = Physics.OverlapBox(new Vector3(visualAgent.transform.position.x + 1, 0, visualAgent.transform.position.z), new Vector3(0.3f, 0.3f, 0.3f));
-            if (blockTest.Where(col => col.gameObject.tag == "wall").ToArray().Length == 0)
-            {
-                visualAgent.transform.position = new Vector3(visualAgent.transform.position.x + 1, 0, visualAgent.transform.position.z);
-            }
+            BlockTest(x_shift: 1, z_shift: 0);
         }
 
         if (action == 2)
         {
-            Collider[] blockTest = Physics.OverlapBox(new Vector3(visualAgent.transform.position.x - 1, 0, visualAgent.transform.position.z), new Vector3(0.3f, 0.3f, 0.3f));
-            if (blockTest.Where(col => col.gameObject.tag == "wall").ToArray().Length == 0)
-            {
-                visualAgent.transform.position = new Vector3(visualAgent.transform.position.x - 1, 0, visualAgent.transform.position.z);
-            }
+            BlockTest(x_shift: -1, z_shift: 0);
         }
 
         if (action == 0)
         {
-            Collider[] blockTest = Physics.OverlapBox(new Vector3(visualAgent.transform.position.x, 0, visualAgent.transform.position.z + 1), new Vector3(0.3f, 0.3f, 0.3f));
-            if (blockTest.Where(col => col.gameObject.tag == "wall").ToArray().Length == 0)
-            {
-                visualAgent.transform.position = new Vector3(visualAgent.transform.position.x, 0, visualAgent.transform.position.z + 1);
-            }
+            BlockTest(x_shift: 0, z_shift: 1);
         }
 
         if (action == 1)
         {
-            Collider[] blockTest = Physics.OverlapBox(new Vector3(visualAgent.transform.position.x, 0, visualAgent.transform.position.z - 1), new Vector3(0.3f, 0.3f, 0.3f));
-            if (blockTest.Where(col => col.gameObject.tag == "wall").ToArray().Length == 0)
-            {
-                visualAgent.transform.position = new Vector3(visualAgent.transform.position.x, 0, visualAgent.transform.position.z - 1);
-            }
+            BlockTest(x_shift: 0, z_shift: -1);
         }
 
         Collider[] hitObjects = Physics.OverlapBox(visualAgent.transform.position, new Vector3(0.3f, 0.3f, 0.3f));
@@ -246,5 +228,21 @@ public class GridEnvironment : Environment
         episodeReward += reward;
         GameObject.Find("RTxt").GetComponent<Text>().text = "Episode Reward: " + episodeReward.ToString("F2");
 
+    }
+
+    private void BlockTest(int x_shift, int z_shift)
+    {
+        Collider[] blockTest = Physics.OverlapBox(new Vector3(visualAgent.transform.position.x + x_shift, 0, visualAgent.transform.position.z + z_shift), new Vector3(0.3f, 0.3f, 0.3f));
+        if (blockTest.Where(col => col.gameObject.tag == "wall").ToArray().Length == 0)
+        {
+            visualAgent.transform.position = new Vector3(visualAgent.transform.position.x + x_shift, 0, visualAgent.transform.position.z + z_shift);
+        }
+    }
+
+    private (int x, int y) getPosition(int gridPosition)
+    {
+        int x = gridPosition / gridSize;
+        int y = gridPosition % gridSize;
+        return (x, y);
     }
 }
